@@ -1,6 +1,7 @@
 #Satellite rotator for M2 Satellite Array
 import socket
 import time
+import serial
 
 def getdde(sock):  
     rcvdata, addr = sock.recvfrom(1024)
@@ -18,12 +19,25 @@ def getdde(sock):
     
 def main():
     #Get az el from DDE server
-    t = 200
-    c=0
     UDP_IP = "127.0.0.1"
     UDP_PORT = 7815
+    azcom = "COM5"
+    elcom = "COM6"
+    baudrate = 9600
+    t = 200
+    c=0
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
+    #Setup serial connections.  For the M2, you need one for AZ and one for EL
+    try:
+        azser = serial.Serial(azcom, baudrate)
+    except:
+        print("Failed to open azimuth", azcom)
+        azser = 0
+    try:
+        elser = serial.Serial(elcom, baudrate)
+    except:
+        elser = 0
     lastaz = 0
     lastel = 0
     while (c < t):
@@ -33,6 +47,21 @@ def main():
             lastel = azel[1]
             print("Azimuth is: ", lastaz)
             print("Elevation is: ", lastel)
+            #Send to com
+            azupdate = "APn" + str(lastaz)
+            elupdate = "APn" + str(lastel)
+            print ("Sending this:")
+            print (azupdate)
+            print (elupdate)
+            try:
+                azser.write(azupdate)
+            except:
+                print("Failed to write azimuth")
+            try:
+                elser.write(elupdate)
+            except:
+                print("Failed to write elevation")
+                
             
         c = c + 1
 	
