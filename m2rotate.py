@@ -21,8 +21,8 @@ def main():
     #Get az el from DDE server
     UDP_IP = "127.0.0.1"
     UDP_PORT = 7815
-    azcom = "COM5"
-    elcom = "COM6"
+    azcom = 'COM3'
+    elcom = 'COM5'
     baudrate = 9600
     t = 200
     c=0
@@ -30,14 +30,16 @@ def main():
     sock.bind((UDP_IP, UDP_PORT))
     #Setup serial connections.  For the M2, you need one for AZ and one for EL
     try:
-        azser = serial.Serial(azcom, baudrate)
+        azser = serial.Serial(azcom, baudrate, timeout=1)
     except:
         print("Failed to open azimuth", azcom)
+        
         azser = 0
     try:
-        elser = serial.Serial(elcom, baudrate)
+        elser = serial.Serial(elcom, baudrate, timeout=1)
     except:
         elser = 0
+        print("Failed to open elevation", elcom)
     lastaz = 0
     lastel = 0
     while (c < t):
@@ -48,17 +50,22 @@ def main():
             print("Azimuth is: ", lastaz)
             print("Elevation is: ", lastel)
             #Send to com
-            azupdate = "APn" + str(lastaz)
-            elupdate = "APn" + str(lastel)
+            azupdate = "APn" + str(lastaz) + "\r;"
+            elupdate = "APn" + str(lastel) + "\r;"
             print ("Sending this:")
             print (azupdate)
             print (elupdate)
+            #Read where it is currently at
+            azser.write("Bin;".encode('utf-8'))
+            result = azser.read(8)
+            print(result)
             try:
-                azser.write(azupdate)
+                azser.write(azupdate.encode('utf-8'))
             except:
                 print("Failed to write azimuth")
+                import pdb;pdb.set_trace()
             try:
-                elser.write(elupdate)
+                elser.write(elupdate.encode('utf-8'))
             except:
                 print("Failed to write elevation")
                 
