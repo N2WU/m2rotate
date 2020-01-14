@@ -18,7 +18,12 @@ def getdde(connection):
     print ("received", data[0])
     #import pdb;pdb.set_trace()
     if (data[0][0] == 'p'):
-        print("Sending hardcoded values")
+        #print("Sending hardcoded values")
+	    #Read from the rotor controller
+        azser.write("Bin;".encode('utf-8'))
+        result = azser.read(8)
+        print ("received this from az:")
+        print(result)
         connection.sendall(b'181.0\n15.0\n')
         #connection.sendall(b'2.5')
         status="p"
@@ -41,11 +46,11 @@ def getdde(connection):
     
 def main():
     #Get az el from DDE server
-    testing = True #Change to false when in operation
+    testing = False #Change to false when in operation
     TCP_IP = "127.0.0.1"
     TCP_PORT = 4533
-    azcom = '/dev/ttyUSB0'
-    elcom = '/dev/ttyUSB1' #Verify these!  May need to use a more specific device
+    azcom = '/dev/ttyUSB2'
+    elcom = '/dev/ttyUSB0' #Verify these!  May need to use a more specific device
     baudrate = 9600
     t = 200
     c=0
@@ -55,22 +60,30 @@ def main():
     if not testing:
         try:
             azser = serial.Serial(azcom, baudrate, timeout=1)
-        except:
+        except Exception as e:
+            print(e)
             print("Failed to open azimuth", azcom)
             azser = 0
         try:
             elser = serial.Serial(elcom, baudrate, timeout=1)
-        except:
+        except Exception as e:
+            print(e)
             elser = 0
             print("Failed to open elevation", elcom)
+    else: #If testing, these need to be set so getdde can be called.
+        azser = 0
+        elser = 0 
     lastaz = 0
     lastel = 0
     sock.listen(1)
     connection, client_address = sock.accept()
     while (c < t):
         print("Beginning loop")
-        azel = getdde(connection)
-        if ((azel[0] != lastaz) or (azel[1] != lastel)):
+        azel = getdde(connection, azser, elser)
+        status = azel[2]
+        #Check to make sure a new az el was set, and make sure it wasn't the same
+        #the Status P is important.  I'm not sure we need to check for last el and az.
+        if (status == "P" and ((azel[0] != lastaz) or (azel[1] != lastel))):
             lastaz = azel[0]
             lastel = azel[1]
             print("Azimuth is: ", lastaz)
