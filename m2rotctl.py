@@ -4,8 +4,9 @@ import socket
 import time
 import serial
 import signal
+import pdb
 
-def getdde(connection):
+def getdde(connection, azser, elser):
     
     #print("waiting for connection")
     #connection, client_address = sock.accept()
@@ -15,23 +16,39 @@ def getdde(connection):
     status = 0
     #print ("Received:", rcvdata)
     data = connection.recv(1024).decode('utf-8').split(" ")
-    print ("received", data[0])
+    #print ("received", data[0])
     #import pdb;pdb.set_trace()
     if (data[0][0] == 'p'):
-        #print("Sending hardcoded values")
+        badread = False
 	    #Read from the rotor controller
         azser.write("Bin;".encode('utf-8'))
-        result = azser.read(8)
-        print ("received this from az:")
-        print(result)
-        connection.sendall(b'181.0\n15.0\n')
+        azstring = azser.read(8)
+        try:
+            current_az = str(azstring)[4:8].split(';')[0]
+        except Exception as e:
+            print("azimuth malformed: ", azstring)
+            badread = True
+        #print(current_az)
+        elser.write("Bin;".encode('utf-8'))
+        elstring = elser.read(8)
+        #print(elstring)
+        try:
+            current_el = str(elstring)[4:8].split(';')[0]
+        except Exception as e:
+            print("elevation malformed: ", elstring)
+            badread = True
+        #print(current_el)
+        #pdb.set_trace()
+        if (badread == False):
+            currentazel = current_az +'\n' +current_el + '\n'
+            connection.sendall(bytes(currentazel.encode('utf-8')))
         #connection.sendall(b'2.5')
         status="p"
+        print("Rotor Azimuth at : " + current_az + " and Elevation at: " + current_el)
     elif (data[0][0] == 'P'):
         az = float(data[1])
         el = float(data[2])
-        print ("az is: ", az)
-        print ("el is: ", el)
+        print ("Setting azimuth to: " +str(az) + " and Elevation to: " + str(el))
         #Set command require a response
         connection.sendall(b'RPRT 0\n')
         status = "P"
@@ -78,7 +95,7 @@ def main():
     sock.listen(1)
     connection, client_address = sock.accept()
     while (c < t):
-        print("Beginning loop")
+        #print("Beginning loop")
         azel = getdde(connection, azser, elser)
         status = azel[2]
         #Check to make sure a new az el was set, and make sure it wasn't the same
@@ -86,26 +103,23 @@ def main():
         if (status == "P" and ((azel[0] != lastaz) or (azel[1] != lastel))):
             lastaz = azel[0]
             lastel = azel[1]
-            print("Azimuth is: ", lastaz)
-            print("Elevation is: ", lastel)
-            #Send to com
+            #print("Azimuth is: ", lastaz)
+            #print("Elevation is: ", lastel)
             azupdate = "APn" + str(lastaz) + "\r;"
             elupdate = "APn" + str(lastel) + "\r;"
-            print ("Sending this:")
-            print (azupdate)
-            print (elupdate)
-            #Read where it is currently at
+            #print (azupdate)
+            #print (elupdate)
+
             if not testing:
-                azser.write("Bin;".encode('utf-8'))
-                result = azser.read(8)
-                print(result)
                 try:
                     azser.write(azupdate.encode('utf-8'))
+                    #print("azupdate")
                 except:
                     print("Failed to write azimuth")
                     import pdb;pdb.set_trace()
                 try:
                     elser.write(elupdate.encode('utf-8'))
+                    #print("elupdate")
                 except:
                     print("Failed to write elevation")
             else:
