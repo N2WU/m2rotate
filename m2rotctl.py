@@ -46,9 +46,10 @@ def getdde(connection, azser, elser):
         status="p"
         print("Rotor Azimuth at : " + current_az + " and Elevation at: " + current_el)
     elif (data[0][0] == 'P'):
-        az = float(data[1])
+        az = float(data[1])  
         el = float(data[2])
-        print ("Setting azimuth to: " +str(az) + " and Elevation to: " + str(el))
+        #Rotor controller only wants 1 digit after the decimal, so format .1f fixes it
+        print ("Setting azimuth to: " +format(az,'.1f') + " and Elevation to: " + format(el, '.1f'))
         #Set command require a response
         connection.sendall(b'RPRT 0\n')
         status = "P"
@@ -66,30 +67,28 @@ def main():
     testing = False #Change to false when in operation
     TCP_IP = "127.0.0.1"
     TCP_PORT = 4533
-    azcom = '/dev/ttyUSB2'
-    elcom = '/dev/ttyUSB0' #Verify these!  May need to use a more specific device
+    azcom = '/dev/ttyUSB7'
+    elcom = '/dev/ttyUSB6' #Verify these!  May need to use a more specific device
     baudrate = 9600
     t = 200
     c=0
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind((TCP_IP, TCP_PORT))
     #Setup serial connections.  For the M2, you need one for AZ and one for EL
-    if not testing:
-        try:
-            azser = serial.Serial(azcom, baudrate, timeout=1)
-        except Exception as e:
-            print(e)
-            print("Failed to open azimuth", azcom)
-            azser = 0
-        try:
-            elser = serial.Serial(elcom, baudrate, timeout=1)
-        except Exception as e:
-            print(e)
-            elser = 0
-            print("Failed to open elevation", elcom)
-    else: #If testing, these need to be set so getdde can be called.
+     
+    try:
+        azser = serial.Serial(azcom, baudrate, timeout=1)
+    except Exception as e:
+        print(e)
+        print("Failed to open azimuth", azcom)
         azser = 0
-        elser = 0 
+    try:
+        elser = serial.Serial(elcom, baudrate, timeout=1)
+    except Exception as e:
+        print(e)
+        elser = 0
+        print("Failed to open elevation", elcom)
+  
     lastaz = 0
     lastel = 0
     sock.listen(1)
@@ -107,19 +106,19 @@ def main():
             #print("Elevation is: ", lastel)
             azupdate = "APn" + str(lastaz) + "\r;"
             elupdate = "APn" + str(lastel) + "\r;"
-            #print (azupdate)
-            #print (elupdate)
+            print (azupdate)
+            print (elupdate)
 
             if not testing:
                 try:
                     azser.write(azupdate.encode('utf-8'))
-                    #print("azupdate")
+                    print("azupdate")
                 except:
                     print("Failed to write azimuth")
                     import pdb;pdb.set_trace()
                 try:
                     elser.write(elupdate.encode('utf-8'))
-                    #print("elupdate")
+                    print("elupdate")
                 except:
                     print("Failed to write elevation")
             else:
@@ -129,8 +128,8 @@ def main():
             print("waiting for new connection")
             connection.close()
             connection, client_address = sock.accept()
-           
-        c = c + 1
+        #comment out so you can loop forever.
+        #c = c + 1
 	
 if __name__ == '__main__':
     main()
