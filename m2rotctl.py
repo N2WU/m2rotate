@@ -48,7 +48,7 @@ def getdde(connection, azser, elser):
     elif (data[0][0] == 'P'):
         az = float(data[1])  
         el = float(data[2])
-        #Rotor controller only wants 1 digit after the decimal, so format .1f fixes it
+        
         print ("Setting azimuth to: " +format(az,'.1f') + " and Elevation to: " + format(el, '.1f'))
         #Set command require a response
         connection.sendall(b'RPRT 0\n')
@@ -104,8 +104,9 @@ def main():
             lastel = azel[1]
             #print("Azimuth is: ", lastaz)
             #print("Elevation is: ", lastel)
-            azupdate = "APn" + str(lastaz) + "\r;"
-            elupdate = "APn" + str(lastel) + "\r;"
+            #Rotor controller only wants 1 digit after the decimal, so format .1f fixes it
+            azupdate = "APn" + format(lastaz,'.1f') + "\r;"
+            elupdate = "APn" + format(lastel,'.1f') + "\r;"
             print (azupdate)
             print (elupdate)
 
