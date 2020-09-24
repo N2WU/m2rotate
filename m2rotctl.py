@@ -67,8 +67,9 @@ def main():
     testing = False #Change to false when in operation
     TCP_IP = "127.0.0.1"
     TCP_PORT = 4533
-    azcom = '/dev/ttyUSB7'
-    elcom = '/dev/ttyUSB6' #Verify these!  May need to use a more specific device
+    #use renaming in /etc/udev/rules.d/10-local.rules
+    azcom = '/dev/azimuth'
+    elcom = '/dev/elevation'
     baudrate = 9600
     t = 200
     c=0
