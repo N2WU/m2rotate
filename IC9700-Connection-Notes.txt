@@ -57,4 +57,12 @@ Rigctl seems to work best with WSJTX at this time:
 rigctld-wsjtx -m 3081 -c 148 -r /dev/icom9700 -s 19200 -P RTS -vv
 
 
+xhci_hcd 0000:02:00.0: WARN Set TR Deq Ptr cmd failed due to incorrect slot or ep state.
+
+xhci_hcd 0000:02:00.0: WARN: buffer overrun event for slot 43 ep 8 on endpoint
+[2159546.818464] retire_capture_urb: 23 callbacks suppressed
+[2159546.819380] xhci_hcd 0000:02:00.0: WARN: buffer overrun event for slot 43 ep 8 on endpoint
+[2164178.232624] xhci_hcd 0000:02:00.0: WARN: buffer overrun event for slot 43 ep 8 on endpoint
+[2164178.233493] xhci_hcd 0000:02:00.0: WARN: buffer overrun event for slot 43 ep 8 on endpoint
+
 

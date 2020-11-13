@@ -66,7 +66,7 @@ def main():
     #Get az el from DDE server
     testing = False #Change to false when in operation
     TCP_IP = "127.0.0.1"
-    TCP_PORT = 4533
+    TCP_PORT = 4534
     #use renaming in /etc/udev/rules.d/10-local.rules
     azcom = '/dev/azimuth'
     elcom = '/dev/elevation'
